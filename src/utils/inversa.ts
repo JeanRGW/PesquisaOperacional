@@ -1,59 +1,53 @@
-export default function inversa(mat: number[][], ind: number[]): number[][] | null {
+export default function inversa(mat: number[][]): number[][] | null {
     const n = mat.length;
-
-    if (!mat.every(row => row.length === n)) {
+    if (!mat.every((row) => row.length === n)) {
         console.error("A matriz deve ser quadrada.");
         return null;
     }
 
-    const identidade: number[][] = [];
+    // Copiar a matriz original
+    const A = mat.map((row) => row.slice());
+    // Criar a matriz identidade
+    const I = Array.from({ length: n }, (_, i) =>
+        Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))
+    );
+
     for (let i = 0; i < n; i++) {
-        identidade.push([]);
-        for (let j = 0; j < n; j++) {
-            identidade[i].push(i === j ? 1 : 0);
+        // Encontrar o maior elemento em valor absoluto na coluna i
+        let maxRow = i;
+        for (let k = i + 1; k < n; k++) {
+            if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) {
+                maxRow = k;
+            }
         }
-    }
 
-    for (let i = 0; i < n; i++) {
-        maiorDaColuna(mat, ind, i);
+        // Trocar as linhas i e maxRow
+        [A[i], A[maxRow]] = [A[maxRow], A[i]];
+        [I[i], I[maxRow]] = [I[maxRow], I[i]];
 
-        if (mat[i][i] === 0) {
+        // Verificar se a matriz é singular
+        if (A[i][i] === 0) {
             console.error("A matriz não é invertível.");
             return null;
         }
 
-        for (let j = i + 1; j < n; j++) {
-            const fator = mat[j][i] / mat[i][i];
-            for (let k = 0; k < n; k++) {
-                mat[j][k] -= fator * mat[i][k];
-                identidade[j][k] -= fator * identidade[i][k];
+        // Normalizar a linha i
+        const pivot = A[i][i];
+        for (let j = 0; j < n; j++) {
+            A[i][j] /= pivot;
+            I[i][j] /= pivot;
+        }
+
+        // Eliminar os outros elementos na coluna i
+        for (let k = 0; k < n; k++) {
+            if (k === i) continue;
+            const fator = A[k][i];
+            for (let j = 0; j < n; j++) {
+                A[k][j] -= fator * A[i][j];
+                I[k][j] -= fator * I[i][j];
             }
         }
     }
 
-    return identidade;
-}
-
-function maiorDaColuna(mat: number[][], ind: number[], index: number) {
-    let maiorI = index;
-    for (let i = index; i < mat.length; i++) {
-        if (Math.abs(mat[i][index]) > Math.abs(mat[maiorI][index]))
-            maiorI = i;
-    }
-
-    permutaLinhas(mat, ind, index, maiorI);
-}
-
-function permutaLinhas(mat: number[][], ind: number[], i: number, j: number) {
-    {
-        const temp = mat[i];
-        mat[i] = mat[j];
-        mat[j] = temp;
-    }
-
-    {
-        const temp = ind[i];
-        ind[i] = ind[j];
-        ind[j] = temp;
-    }
+    return I;
 }
