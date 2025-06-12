@@ -23,10 +23,10 @@ function extraiProblema(entrada) {
     const vetorI = entrada.map((x) => parseFloat(x[0]));
     return {
         isMax,
-        funcF: vetorF,
-        mat,
-        ind: vetorI,
-        ops
+        A: mat,
+        b: vetorI,
+        c: vetorF,
+        ops,
     };
 }
 function extraiFuncF(entrada) {

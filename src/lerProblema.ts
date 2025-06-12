@@ -1,131 +1,129 @@
 import { readFileSync } from "fs";
 
 function preparaEntrada(): string[][] {
-    const rFile = readFileSync("test.txt", "utf-8");
+	const rFile = readFileSync("test.txt", "utf-8");
 
-    return rFile
-        .split(/\r?\n/) // Divide em linhas
-        .filter((x) => x.trim() !== "") // Remove linhas vazias
-        .map((line) => line.split(" ")); // Quebra em elementos da linha
+	return rFile
+		.split(/\r?\n/) // Divide em linhas
+		.filter((x) => x.trim() !== "") // Remove linhas vazias
+		.map((line) => line.split(" ")); // Quebra em elementos da linha
 }
 
 export interface Problema {
-    isMax: boolean;
-    funcF: number[];
-    mat: number[][];
-    ind: number[];
-    ops: string[];
+	isMax: boolean;
+	A: number[][]; // Matriz restrições
+	b: number[]; // Direita das restrições
+	c: number[]; // Coeficientes da função objetivo
+	ops: string[];
 }
 
 function extraiProblema(entrada: string[][]): Problema {
-    const primeiraLinha = entrada.shift();
-    if (!primeiraLinha) throw new Error("Erro na entrada.");
+	const primeiraLinha = entrada.shift();
+	if (!primeiraLinha) throw new Error("Erro na entrada.");
 
-    const [maxMinStr, , , ...resto] = primeiraLinha;
-    const isMax = maxMinStr.toLowerCase() === "max";
+	const [maxMinStr, , , ...resto] = primeiraLinha;
+	const isMax = maxMinStr.toLowerCase() === "max";
 
-    let vetorF = extraiFuncF(resto);
-    let nVars = vetorF.length;
-    let ops: string[] = [];
+	let vetorF = extraiFuncF(resto);
+	let nVars = vetorF.length;
+	let ops: string[] = [];
 
-    const mat = montarMatriz(entrada, nVars);
+	const mat = montarMatriz(entrada, nVars);
 
-    interpretaSinais(entrada, vetorF, mat, ops);
+	interpretaSinais(entrada, vetorF, mat, ops);
 
-    const vetorI: number[] = entrada.map((x) => parseFloat(x[0]));
+	const vetorI: number[] = entrada.map((x) => parseFloat(x[0]));
 
-    return {
-        isMax,
-        funcF: vetorF,
-        mat,
-        ind: vetorI,
-        ops
-    };
+	return {
+		isMax,
+		A: mat,
+		b: vetorI,
+		c: vetorF,
+		ops,
+	};
 }
 
 function extraiFuncF(entrada: string[]): number[] {
-    const funcF: number[] = [];
+	const funcF: number[] = [];
 
-    let sinal = "+";
-    for (const c of entrada) {
-        if (c === "+" || c === "-") {
-            sinal = c;
-        } else {
-            const split = c.split("x");
-            const valor = split[0] === ""? 1 : split[0] === "-"? -1 : parseFloat(split[0])
-            funcF.push(sinal === "+" ? valor : valor * -1);
-            sinal = "+";
-        }
-    }
+	let sinal = "+";
+	for (const c of entrada) {
+		if (c === "+" || c === "-") {
+			sinal = c;
+		} else {
+			const split = c.split("x");
+			const valor = split[0] === "" ? 1 : split[0] === "-" ? -1 : parseFloat(split[0]);
+			funcF.push(sinal === "+" ? valor : valor * -1);
+			sinal = "+";
+		}
+	}
 
-    return funcF;
-
+	return funcF;
 }
 
 function montarMatriz(entrada: string[][], nVars: number): number[][] {
-    const mat: number[][] = [];
+	const mat: number[][] = [];
 
-    for (let i = 0; i < entrada.length; i++) {
-        mat.push([]);
+	for (let i = 0; i < entrada.length; i++) {
+		mat.push([]);
 
-        for (let j = 0; j < nVars; j++) {
-            mat[i].push(0);
-        }
-    }
+		for (let j = 0; j < nVars; j++) {
+			mat[i].push(0);
+		}
+	}
 
-    let linhaAtual = 0;
-    for (const linha of entrada) {
+	let linhaAtual = 0;
+	for (const linha of entrada) {
+		let sinal = "+";
+		while (linha.length > 0 && !linha[0].match(/<|>|=/g)) {
+			const c = linha.shift() as string;
 
-        let sinal = "+";
-        while (linha.length > 0 && !linha[0].match(/<|>|=/g)) {
-            const c = linha.shift() as string;
+			if (c === "+" || c === "-") {
+				sinal = c;
+			} else {
+				const split = c.split("x");
+				const valor = split[0] === "" ? 1 : split[0] === "-" ? -1 : parseFloat(split[0]);
+				const iVar = (parseInt(split[1]) - 1) as number;
 
-            if (c === "+" || c === "-") {
-                sinal = c;
-            } else {
-                const split = c.split("x");
-                const valor = split[0] === ""? 1 : split[0] === "-"? -1 : parseFloat(split[0])
-                const iVar = (parseInt(split[1]) - 1) as number;
+				mat[linhaAtual][iVar] = sinal === "+" ? valor : valor * -1;
+				sinal = "+";
+			}
+		}
 
-                mat[linhaAtual][iVar] = sinal === "+" ? valor : valor * -1;
-                sinal = "+";
-            }
-        }
+		linhaAtual++;
+	}
 
-        linhaAtual++;
-    }
-
-    return mat;
+	return mat;
 }
 
 function interpretaSinais(
-    entrada: string[][],
-    vetorF: number[],
-    mat: number[][],
-    ops: string[]
+	entrada: string[][],
+	vetorF: number[],
+	mat: number[][],
+	ops: string[]
 ): void {
-    for (let i = 0; i < entrada.length; i++) {
-        const c = entrada[i].shift() as string;
-        ops.push(c);
+	for (let i = 0; i < entrada.length; i++) {
+		const c = entrada[i].shift() as string;
+		ops.push(c);
 
-        if (c !== "=") {
-            const valor = c.match("<") ? 1 : -1;
+		if (c !== "=") {
+			const valor = c.match("<") ? 1 : -1;
 
-            vetorF.push(0);
+			vetorF.push(0);
 
-            for (let j = 0; j < entrada.length; j++) {
-                if (j === i) {
-                    mat[j].push(valor);
-                } else {
-                    mat[j].push(0);
-                }
-            }
-        }
-    }
+			for (let j = 0; j < entrada.length; j++) {
+				if (j === i) {
+					mat[j].push(valor);
+				} else {
+					mat[j].push(0);
+				}
+			}
+		}
+	}
 }
 
 export default function lerProblema() {
-    const entrada = preparaEntrada();
+	const entrada = preparaEntrada();
 
-    return extraiProblema(entrada);
+	return extraiProblema(entrada);
 }

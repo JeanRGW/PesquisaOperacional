@@ -3,13 +3,10 @@ import formularProblemaArtificial, {
 } from "./adicionarArtificiais";
 import fase2 from "./fase2";
 import { Problema } from "./lerProblema";
+import { calcularCustosRelativos } from "./simplex";
 import inversa from "./utils/inversa";
 import multiplicarMatriz from "./utils/multiplicarMatriz";
-
-// Produto interno entre dois vetores
-function produtoInterno(v1: number[], v2: number[]): number {
-    return v1.reduce((soma, val, i) => soma + val * v2[i], 0);
-}
+import produtoInterno from "./utils/produtoInterno";
 
 function solucaoBasicaInicial(problemaArtificial: ProblemaArtificial) {
     const { A, variaveisBasicas } = problemaArtificial;
@@ -41,30 +38,30 @@ function solucaoBasicaInicial(problemaArtificial: ProblemaArtificial) {
     return x;
 }
 
-function calcularCustosReduzidos(problemaArtificial: ProblemaArtificial) {
-    const { A, b, variaveisBasicas, variaveisNaoBasicas, objetivo } =
-        problemaArtificial;
+// function calcularCustosReduzidos(problemaArtificial: ProblemaArtificial) {
+//     const { A, b, variaveisBasicas, variaveisNaoBasicas, objetivo } =
+//         problemaArtificial;
 
-    const B = A.map((linha) => variaveisBasicas.map((j) => linha[j]));
-    const invB = inversa(B);
-    if (!invB) throw new Error(`A matriz B não é invertível.\n${B}`);
+//     const B = A.map((linha) => variaveisBasicas.map((j) => linha[j]));
+//     const invB = inversa(B);
+//     if (!invB) throw new Error(`A matriz B não é invertível.\n${B}`);
 
-    const cB = variaveisBasicas.map((j) => objetivo[j]);
+//     const cB = variaveisBasicas.map((j) => objetivo[j]);
 
-    // λ^T = cB^T * B⁻¹
-    const lambdaT = multiplicarMatriz([cB], invB)[0];
+//     // λ^T = cB^T * B⁻¹
+//     const lambdaT = multiplicarMatriz([cB], invB)[0];
 
-    // Vetor de custos reduzidos (um para cada variável não-básica)
-    const custosRelativos: number[] = [];
+//     // Vetor de custos reduzidos (um para cada variável não-básica)
+//     const custosRelativos: number[] = [];
 
-    for (const j of variaveisNaoBasicas) {
-        const aNj = A.map((linha) => linha[j]); // coluna j
-        const custoRelativo = objetivo[j] - produtoInterno(lambdaT, aNj);
-        custosRelativos.push(custoRelativo);
-    }
+//     for (const j of variaveisNaoBasicas) {
+//         const aNj = A.map((linha) => linha[j]); // coluna j
+//         const custoRelativo = objetivo[j] - produtoInterno(lambdaT, aNj);
+//         custosRelativos.push(custoRelativo);
+//     }
 
-    return { custosRelativos, lambdaT, invB };
-}
+//     return { custosRelativos, lambdaT, invB };
+// }
 
 // Passo 2.3: Determinar qual variável entra na base
 function escolherVariavelQueEntra(
@@ -123,13 +120,16 @@ function calcularDirecaoSimplex(
     return direcao;
 }
 
-function determinarVariavelQueSai(
+export function determinarVariavelQueSai(
     y: number[][], // vetor coluna (m x 1)
     xB: number[][], // vetor coluna (m x 1)
     variaveisBasicas: number[]
 ): { sai: number | null; epsilon: number } {
     let minRazao = Infinity;
     let indiceMinimo = -1;
+
+    if(y.every(x => x[0] <= 0))
+        console.log("Todas as direções são não positivas, problema inviável.");
 
     for (let i = 0; i < y.length; i++) {
         const yi = y[i][0];
@@ -146,7 +146,7 @@ function determinarVariavelQueSai(
     return { sai, epsilon: minRazao };
 }
 
-function atualizarBase(
+export function atualizarBase(
     problema: ProblemaArtificial,
     sai: number, // índice da variável que sai da base
     entra: number // índice da variável que entra na base
@@ -187,11 +187,11 @@ function removerVariaveisArtificiais(
 }
 
 export default function fase1(problema: Problema) {
-    const n = problema.funcF.length;
-    const cOrigianis = [...problema.funcF];
+    const n = problema.c.length;
+    const cOrigianis = [...problema.c];
     const problemaArtificial = formularProblemaArtificial(
-        problema.mat,
-        problema.ind
+        problema.A,
+        problema.b
     );
     const maxIt = 1000;
     let it = 1;
@@ -204,7 +204,7 @@ export default function fase1(problema: Problema) {
         console.log("Solução Básica Inicial:", x);
 
         const { custosRelativos, lambdaT, invB } =
-            calcularCustosReduzidos(problemaArtificial);
+            calcularCustosRelativos(problemaArtificial);
 
         console.log("Custos Reduzidos:", custosRelativos);
 
@@ -216,7 +216,7 @@ export default function fase1(problema: Problema) {
         const status = testeOtimalidadeFase1(
             custo,
             problemaArtificial.variaveisBasicas,
-            problema.mat[0].length
+            problema.A[0].length
         );
 
         console.log(status);
