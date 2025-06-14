@@ -1,0 +1,30 @@
+calculadora online para comparação
+https://otimizacao.js.org/simplex.html
+https://www.pmcalculators.com/big-m-method-calculator/
+
+exercícios comparados com as saídas esperadas do txt da Júlia
+
+//0.3226 --- era pra ser ilimitado, meu programa e calculadora online deram resultado igual
+Min Z = -x1 + 2x2
+x1 + x2 >= 1
+-5x1 + 2x2 >= -10
+3x1 + 5x2 >= 15
+
+//0 --- era pra ser ilimitado, meu programa e calculadora online deram resultado igual
+Min Z = 4x1 - 12x2
+2x1 + x2 >= 6
+x1 + 3x2 <= 8
+x1 >= 4
+
+//11.6 --- era pra ser 11.6666, meu programa e calculadora online deram resultado igual
+Max Z = x1 + x2
+2x1 + x2 <= 18
+-x1 + 2x2 <= 4
+3x1 − 6x2 >= -12
+
+//infactível --- era pra ser ilimitado, meu programa e calculadora online deram resultado igual
+Max Z = 4x1 + 3x2
+x1 + 3x2 <= 7
+2x1 + 2x2 = 8
+x1 + x2 <= -3
+x2 <= 2

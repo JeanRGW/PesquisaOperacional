@@ -1,12 +1,12 @@
 import determinante from "./utils/determinante";
 
-function gerarB(M: number[][], I: number[]) : number[][] {
+export function gerarB(M: number[][], I: number[]): number[][] {
     const n = M.length;
+    const newMat: number[][] = [];
 
-    const newMat: number[][] = []
-    for(let i = 0; i < n; i++) {
+    for (let i = 0; i < n; i++) {
         newMat.push([]);
-        for(let j = 0; j < n; j++) {
+        for (let j = 0; j < I.length; j++) {
             newMat[i].push(M[i][I[j]]);
         }
     }
@@ -14,18 +14,13 @@ function gerarB(M: number[][], I: number[]) : number[][] {
     return newMat;
 }
 
-function gerarNB(M: number[][], I: number[]) : number[][] {
+function gerarNB(M: number[][], I: number[]): number[][] {
     const nLinhas = M.length;
+    const newMat: number[][] = [];
 
-    const newI = [...I];
-    newI.splice(0, nLinhas);
-
-    const newMat: number[][] = []
-    for(let i = 0; i<nLinhas; i++) {
+    for (let i = 0; i < nLinhas; i++) {
         newMat.push([]);
-        
-        for(let j = 0; j < newI.length; j++) {
-            console.log
+        for (let j = 0; j < I.length; j++) {
             newMat[i].push(M[i][I[j]]);
         }
     }
@@ -33,60 +28,53 @@ function gerarNB(M: number[][], I: number[]) : number[][] {
     return newMat;
 }
 
-function permutaTesta(M: number[][], I: number[], NI: number[]) : number[] | null {
-    if(NI.length === M.length){
-        if(determinante(gerarB(M, NI)) !== 0)
-            return I;
-
-        return null;
+function permutaTesta(
+    M: number[][],
+    I: number[],
+    NI: number[]
+): number[] | null {
+    if (NI.length === M.length) {
+        return determinante(gerarB(M, NI)) !== 0 ? NI : null;
     }
 
-    for(let i=0; i<I.length; i++){
+    for (let i = 0; i < I.length; i++) {
         const NI2 = [...NI, I[i]];
         const I2 = [...I];
         I2.splice(i, 1);
-        console.log("NI2: " + NI2);
-        
-        if(permutaTesta(M, I2, NI2) !== null){
-            return I2;
+
+        const resultado = permutaTesta(M, I2, NI2);
+        if (resultado !== null) {
+            return resultado;
         }
     }
 
     return null;
 }
 
-export default function encontraBeNB(M: number[][]) : {
-    B: number[][],
-    NB: number[][],
-    iB: number[],
-    iNB: number[]
+export default function encontraBeNB(M: number[][]): {
+    B: number[][];
+    NB: number[][];
+    iB: number[];
+    iNB: number[];
 } | null {
     const n = M[0].length;
-    const I = new Array(n).fill(0).map((_, i) => i);
+    const I = Array.from({ length: n }, (_, i) => i);
 
     const pCorreta = permutaTesta(M, I, []);
-
-    if(pCorreta === null) {
+    if (pCorreta === null) {
         return null;
     }
 
-    const B = gerarB(M, pCorreta);
-    const NB = gerarNB(M, I);
     const iB = pCorreta;
-    const iNB = I.filter(i => !pCorreta.includes(i));
+    const iNB = I.filter((i) => !iB.includes(i));
+
+    const B = gerarB(M, iB);
+    const NB = gerarNB(M, iNB);
 
     return {
         B,
         NB,
         iB,
-        iNB
-    }
+        iNB,
+    };
 }
-
-const M = [
-    [1, 1, 1, 0],
-    [1, 0, 0, -1],
-    [0, 1, 0, 0]
-]
-
-console.log(encontraBeNB(M));

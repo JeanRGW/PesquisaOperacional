@@ -15,18 +15,21 @@ function extraiProblema(entrada) {
         throw new Error("Erro na entrada.");
     const [maxMinStr, , , ...resto] = primeiraLinha;
     const isMax = maxMinStr.toLowerCase() === "max";
-    let vetorF = extraiFuncF(resto);
-    let nVars = vetorF.length;
+    let c = extraiFuncF(resto);
+    let nVars = c.length;
     let ops = [];
-    const mat = montarMatriz(entrada, nVars);
-    interpretaSinais(entrada, vetorF, mat, ops);
-    const vetorI = entrada.map((x) => parseFloat(x[0]));
+    const A = montarMatriz(entrada, nVars);
+    interpretaSinais(entrada, c, A, ops);
+    const b = entrada.map((x) => parseFloat(x[0]));
     return {
         isMax,
-        A: mat,
-        b: vetorI,
-        c: vetorF,
+        A,
+        b,
+        c,
         ops,
+        n: A[0].length, // Numero de variáveis reais
+        vb: [],
+        vnb: [],
     };
 }
 function extraiFuncF(entrada) {
@@ -38,7 +41,11 @@ function extraiFuncF(entrada) {
         }
         else {
             const split = c.split("x");
-            const valor = split[0] === "" ? 1 : split[0] === "-" ? -1 : parseFloat(split[0]);
+            const valor = split[0] === ""
+                ? 1
+                : split[0] === "-"
+                    ? -1
+                    : parseFloat(split[0]);
             funcF.push(sinal === "+" ? valor : valor * -1);
             sinal = "+";
         }
@@ -63,7 +70,11 @@ function montarMatriz(entrada, nVars) {
             }
             else {
                 const split = c.split("x");
-                const valor = split[0] === "" ? 1 : split[0] === "-" ? -1 : parseFloat(split[0]);
+                const valor = split[0] === ""
+                    ? 1
+                    : split[0] === "-"
+                        ? -1
+                        : parseFloat(split[0]);
                 const iVar = (parseInt(split[1]) - 1);
                 mat[linhaAtual][iVar] = sinal === "+" ? valor : valor * -1;
                 sinal = "+";

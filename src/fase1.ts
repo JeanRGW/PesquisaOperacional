@@ -1,18 +1,14 @@
-import formularProblemaArtificial, {
-    ProblemaArtificial,
-} from "./adicionarArtificiais";
 import fase2 from "./fase2";
-import { Problema } from "./lerProblema";
-import { calcularCustosRelativos } from "./simplex";
+import { formarProblemaArtificial, calcularCustosRelativos } from "./simplex";
 import inversa from "./utils/inversa";
 import multiplicarMatriz from "./utils/multiplicarMatriz";
-import produtoInterno from "./utils/produtoInterno";
+import Problema from "./types";
 
-function solucaoBasicaInicial(problemaArtificial: ProblemaArtificial) {
-    const { A, variaveisBasicas } = problemaArtificial;
+function solucaoBasicaInicial(problemaArtificial: Problema) {
+    const { A, vb } = problemaArtificial;
     const n = A[0].length;
 
-    const B = A.map((linha) => variaveisBasicas.map((j) => linha[j]));
+    const B = A.map((linha) => vb.map((j) => linha[j]));
 
     console.log("Matriz B:", B);
     console.log("Vetor b:", problemaArtificial.b);
@@ -31,37 +27,12 @@ function solucaoBasicaInicial(problemaArtificial: ProblemaArtificial) {
     );
 
     const x: number[] = Array(n).fill(0);
-    variaveisBasicas.forEach((indice, i) => {
+    vb.forEach((indice, i) => {
         x[indice] = xB[i][0];
     });
 
     return x;
 }
-
-// function calcularCustosReduzidos(problemaArtificial: ProblemaArtificial) {
-//     const { A, b, variaveisBasicas, variaveisNaoBasicas, objetivo } =
-//         problemaArtificial;
-
-//     const B = A.map((linha) => variaveisBasicas.map((j) => linha[j]));
-//     const invB = inversa(B);
-//     if (!invB) throw new Error(`A matriz B não é invertível.\n${B}`);
-
-//     const cB = variaveisBasicas.map((j) => objetivo[j]);
-
-//     // λ^T = cB^T * B⁻¹
-//     const lambdaT = multiplicarMatriz([cB], invB)[0];
-
-//     // Vetor de custos reduzidos (um para cada variável não-básica)
-//     const custosRelativos: number[] = [];
-
-//     for (const j of variaveisNaoBasicas) {
-//         const aNj = A.map((linha) => linha[j]); // coluna j
-//         const custoRelativo = objetivo[j] - produtoInterno(lambdaT, aNj);
-//         custosRelativos.push(custoRelativo);
-//     }
-
-//     return { custosRelativos, lambdaT, invB };
-// }
 
 // Passo 2.3: Determinar qual variável entra na base
 function escolherVariavelQueEntra(
@@ -128,9 +99,6 @@ export function determinarVariavelQueSai(
     let minRazao = Infinity;
     let indiceMinimo = -1;
 
-    if(y.every(x => x[0] <= 0))
-        console.log("Todas as direções são não positivas, problema inviável.");
-
     for (let i = 0; i < y.length; i++) {
         const yi = y[i][0];
         if (yi > 0) {
@@ -142,57 +110,57 @@ export function determinarVariavelQueSai(
         }
     }
 
-    const sai = variaveisBasicas[indiceMinimo] ?? null;
+    // Nenhuma razão válida -> problema ilimitado
+    if (indiceMinimo === -1) {
+        console.warn(
+            "Problema ilimitado: nenhuma direção positiva encontrada."
+        );
+        return { sai: null, epsilon: Infinity };
+    }
+
+    const sai = variaveisBasicas[indiceMinimo];
     return { sai, epsilon: minRazao };
 }
 
 export function atualizarBase(
-    problema: ProblemaArtificial,
+    problema: Problema,
     sai: number, // índice da variável que sai da base
     entra: number // índice da variável que entra na base
 ): void {
-    const posSai = problema.variaveisBasicas.indexOf(sai);
-    const posEntra = problema.variaveisNaoBasicas.indexOf(entra);
+    const posSai = problema.vb.indexOf(sai);
+    const posEntra = problema.vnb.indexOf(entra);
 
     if (posSai === -1 || posEntra === -1) {
         throw new Error("Erro ao atualizar base: índices inválidos.");
     }
 
     // Troca os índices nas listas de variáveis
-    problema.variaveisBasicas[posSai] = entra;
-    problema.variaveisNaoBasicas[posEntra] = sai;
+    problema.vb[posSai] = entra;
+    problema.vnb[posEntra] = sai;
 }
 
-function removerVariaveisArtificiais(
-    problema: ProblemaArtificial,
-    numOriginais: number
-) {
+function removerVariaveisArtificiais(problema: Problema) {
+    const { n } = problema; // número de variáveis originais
+
     const indicesArtificiais = [];
-    for (let j = numOriginais; j < problema.A[0].length; j++) {
+    for (let j = n; j < problema.A[0].length; j++) {
         indicesArtificiais.push(j);
     }
 
     // Remove colunas de A
-    problema.A = problema.A.map((linha) =>
-        linha.filter((_, j) => j < numOriginais)
-    );
+    problema.A = problema.A.map((linha) => linha.filter((_, j) => j < n));
 
     // Remove variáveis artificiais das listas
-    problema.variaveisBasicas = problema.variaveisBasicas.filter(
-        (j) => j < numOriginais
-    );
-    problema.variaveisNaoBasicas = problema.variaveisNaoBasicas.filter(
-        (j) => j < numOriginais
-    );
+    problema.vb = problema.vb.filter((j) => j < n);
+    problema.vnb = problema.vnb.filter((j) => j < n);
 }
 
-export default function fase1(problema: Problema) {
+export default function fase1(
+    problema: Problema
+): number | "infactível" | "ilimitado" {
     const n = problema.c.length;
     const cOrigianis = [...problema.c];
-    const problemaArtificial = formularProblemaArtificial(
-        problema.A,
-        problema.b
-    );
+    const problemaArtificial = formarProblemaArtificial(problema);
     const maxIt = 1000;
     let it = 1;
     let artificiaisNaBase = true;
@@ -210,12 +178,12 @@ export default function fase1(problema: Problema) {
 
         const { entra, custo } = escolherVariavelQueEntra(
             custosRelativos,
-            problemaArtificial.variaveisNaoBasicas
+            problemaArtificial.vnb
         );
 
         const status = testeOtimalidadeFase1(
             custo,
-            problemaArtificial.variaveisBasicas,
+            problemaArtificial.vb,
             problema.A[0].length
         );
 
@@ -229,7 +197,7 @@ export default function fase1(problema: Problema) {
                     "Problema não tem solução ótima finita, problema original infactível"
                 );
 
-            const xB = problemaArtificial.variaveisBasicas
+            const xB = problemaArtificial.vb
                 .map((j) => x[j])
                 .map((val) => [val]);
 
@@ -238,20 +206,22 @@ export default function fase1(problema: Problema) {
             const { sai, epsilon } = determinarVariavelQueSai(
                 y,
                 xB,
-                problemaArtificial.variaveisBasicas
+                problemaArtificial.vb
             );
 
             if (!sai) {
-                throw new Error(
+                console.log(
                     "Não foi possível determinar a variável que sai da base."
                 );
+
+                return "ilimitado";
             }
             console.log(
                 `Variável que sai da base: x_${sai}, razão mínima ε = ${epsilon}`
             );
 
             atualizarBase(problemaArtificial, sai, entra);
-            if (!problemaArtificial.variaveisBasicas.some((j) => j >= n))
+            if (!problemaArtificial.vb.some((j) => j >= n))
                 artificiaisNaBase = false;
 
             it++;
@@ -259,24 +229,25 @@ export default function fase1(problema: Problema) {
             if (status === "fase2") {
                 console.log("Iniciando Fase II com a base atual.");
             } else if (status === "inviavel") {
-                throw new Error(
+                console.log(
                     "Problema inviável: não é possível encontrar uma solução."
                 );
+
+                return "infactível";
             } else {
                 throw new Error("Isso não devia chegar aqui.");
             }
         }
     } while (artificiaisNaBase && it < maxIt);
 
-    console.log(problemaArtificial.variaveisBasicas);
-    console.log(problemaArtificial.variaveisNaoBasicas);
+    console.log(problemaArtificial.vb);
+    console.log(problemaArtificial.vnb);
 
     console.log(
-        "Base inicial encontrada para Fase 2: " +
-            problemaArtificial.variaveisBasicas
+        "Base inicial encontrada para Fase 2: " + problemaArtificial.vb
     );
 
-    removerVariaveisArtificiais(problemaArtificial, n);
-    problemaArtificial.objetivo = cOrigianis;
+    removerVariaveisArtificiais(problemaArtificial);
+    problemaArtificial.c = cOrigianis;
     return fase2(problemaArtificial);
 }
