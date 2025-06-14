@@ -278,5 +278,5 @@ export default function fase1(problema: Problema) {
 
     removerVariaveisArtificiais(problemaArtificial, n);
     problemaArtificial.objetivo = cOrigianis;
-    fase2(problemaArtificial);
+    return fase2(problemaArtificial);
 }

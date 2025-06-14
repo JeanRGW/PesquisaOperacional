@@ -79,9 +79,10 @@ function fase2(problema) {
     const n = problema.objetivo.length;
     const maxIt = 1000;
     let it = 1;
+    let solucaoBasica = null;
     do {
         console.log(`Iteração ${it} da fase 2`);
-        const solucaoBasica = calcularSolucaoBasica(problema);
+        solucaoBasica = calcularSolucaoBasica(problema);
         const resultadoCustos = (0, simplex_1.calcularCustosRelativos)(problema);
         if (resultadoCustos.indiceQueEntra === null) {
             console.log("Solução ótima encontrada:");
@@ -92,16 +93,22 @@ function fase2(problema) {
             break;
         }
         else {
-            const direcao = calcularDirecaoSimplex(problema.A, resultadoCustos.invB, resultadoCustos.indiceQueEntra);
+            const direcao = calcularDirecaoSimplex(problema.A, resultadoCustos.invB, problema.variaveisNaoBasicas[resultadoCustos.indiceQueEntra]);
             const xB = problema.variaveisBasicas.map((j) => solucaoBasica.x[j]).map((val) => [val]);
             const { sai, epsilon } = (0, fase1_1.determinarVariavelQueSai)(direcao, xB, problema.variaveisBasicas);
             console.log("Epsilon: " + epsilon);
-            if (!sai) {
+            console.log("Logs ultra sérios");
+            console.log(sai, resultadoCustos.indiceQueEntra);
+            console.log(problema.variaveisBasicas[sai], problema.variaveisNaoBasicas[resultadoCustos.indiceQueEntra]);
+            if (sai === null) {
                 throw new Error("Não foi possível determinar a variável que sai da base.");
             }
             console.log(`Variável que sai da base: x_${sai}, razão mínima ε = ${epsilon}`);
-            (0, fase1_1.atualizarBase)(problema, sai, resultadoCustos.indiceQueEntra);
+            (0, fase1_1.atualizarBase)(problema, sai, problema.variaveisNaoBasicas[resultadoCustos.indiceQueEntra]);
             it++;
         }
     } while (it < maxIt);
+    console.log("Fase 2 concluída. Fé");
+    console.log(solucaoBasica);
+    return calcularValorObjetivo(solucaoBasica.x, problema.objetivo);
 }

@@ -29,5 +29,7 @@ export function calcularCustosRelativos(problema: ProblemaArtificial){
         }
     })
 
+    console.log("Indice que entra: " + indiceQueEntra)
+
     return {custosRelativos, lambdaT, invB, indiceQueEntra};
 }

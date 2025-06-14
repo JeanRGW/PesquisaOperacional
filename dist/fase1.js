@@ -179,5 +179,5 @@ function fase1(problema) {
         problemaArtificial.variaveisBasicas);
     removerVariaveisArtificiais(problemaArtificial, n);
     problemaArtificial.objetivo = cOrigianis;
-    (0, fase2_1.default)(problemaArtificial);
+    return (0, fase2_1.default)(problemaArtificial);
 }

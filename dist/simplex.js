@@ -27,5 +27,6 @@ function calcularCustosRelativos(problema) {
             indiceQueEntra = i;
         }
     });
+    console.log("Indice que entra: " + indiceQueEntra);
     return { custosRelativos, lambdaT, invB, indiceQueEntra };
 }

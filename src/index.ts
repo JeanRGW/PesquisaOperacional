@@ -47,7 +47,9 @@ if (colunasIdentidade.length < A.length) {
 }
 
 if (usarFase1) {
-    fase1({ A, b, isMax, c, ops });
+    const z = fase1({ A, b, isMax, c, ops });
+    const res = isMax?z * -1 : z
+    console.log(res);
 } else {
     console.log("Fase2 direto");
 }

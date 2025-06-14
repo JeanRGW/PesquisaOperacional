@@ -112,10 +112,12 @@ export default function fase2(problema: ProblemaArtificial) {
 	const maxIt = 1000;
 	let it = 1;
 
+	let solucaoBasica: SolucaoBasica | null = null;
+
 	do {
 		console.log(`Iteração ${it} da fase 2`);
 
-		const solucaoBasica = calcularSolucaoBasica(problema);
+		solucaoBasica = calcularSolucaoBasica(problema);
 		const resultadoCustos = calcularCustosRelativos(problema);
 
 		if (resultadoCustos.indiceQueEntra === null) {
@@ -129,23 +131,31 @@ export default function fase2(problema: ProblemaArtificial) {
 			const direcao = calcularDirecaoSimplex(
 				problema.A,
 				resultadoCustos.invB,
-				resultadoCustos.indiceQueEntra
+				problema.variaveisNaoBasicas[resultadoCustos.indiceQueEntra!]
 			);
 
-			const xB = problema.variaveisBasicas.map((j) => solucaoBasica.x[j]).map((val) => [val]);
+			const xB = problema.variaveisBasicas.map((j) => solucaoBasica!.x[j]).map((val) => [val]);
 
 			const { sai, epsilon } = determinarVariavelQueSai(direcao, xB, problema.variaveisBasicas);
 
-            console.log("Epsilon: " + epsilon);
+			console.log("Epsilon: " + epsilon);
+            console.log("Logs ultra sérios")
+			console.log(sai, resultadoCustos.indiceQueEntra);
+            console.log(problema.variaveisBasicas[sai!], problema.variaveisNaoBasicas[resultadoCustos.indiceQueEntra])
 
-			if (!sai) {
+			if (sai === null) {
 				throw new Error("Não foi possível determinar a variável que sai da base.");
 			}
 			console.log(`Variável que sai da base: x_${sai}, razão mínima ε = ${epsilon}`);
 
-			atualizarBase(problema, sai, resultadoCustos.indiceQueEntra);
+			atualizarBase(problema, sai, problema.variaveisNaoBasicas[resultadoCustos.indiceQueEntra!]);
 
 			it++;
 		}
 	} while (it < maxIt);
+
+	console.log("Fase 2 concluída. Fé");
+	console.log(solucaoBasica);
+
+    return calcularValorObjetivo(solucaoBasica.x, problema.objetivo);
 }
