@@ -172,7 +172,6 @@ export default function fase1(
             calcularCustosRelativos(problemaArtificial);
 
         console.log("Custos Reduzidos:", custosRelativos);
-        console.lo
 
         const status = testeOtimalidadeFase1(
             custo,
