@@ -60,8 +60,12 @@ function calcularSolucaoBasica(problema: Problema): SolucaoBasica {
 function calcularDirecaoSimplex(
     A: number[][],
     invB: number[][],
-    variavelEntrante: number
+    indiceQueEntra: number,
+    variaveisNaoBasicas: number[]
 ): number[][] {
+    const variavelEntrante = variaveisNaoBasicas[indiceQueEntra];
+    console.log(variavelEntrante);
+
     const aNk = A.map((linha) => linha[variavelEntrante]); // coluna da variável entrante
     const aNkColuna = aNk.map((x) => [x]);
     const direcao = multiplicarMatriz(invB, aNkColuna);
@@ -102,41 +106,37 @@ export default function fase2(problema: Problema) {
             const direcao = calcularDirecaoSimplex(
                 problema.A,
                 resultadoCustos.invB,
-                problema.vnb[resultadoCustos.indiceQueEntra!]
+                resultadoCustos.indiceQueEntra,
+                problema.vnb
             );
 
             const xB = problema.vb
                 .map((j) => solucaoBasica!.x[j])
                 .map((val) => [val]);
 
-            const { sai, epsilon } = determinarVariavelQueSai(
+            const { indiceQueSai, epsilon } = determinarVariavelQueSai(
                 direcao,
-                xB,
-                problema.vb
+                xB
             );
 
             console.log("Epsilon: " + epsilon);
             console.log("Logs ultra sérios");
-            console.log(sai, resultadoCustos.indiceQueEntra);
             console.log(
-                problema.vb[sai!],
+                problema.vb[indiceQueSai!],
                 problema.vnb[resultadoCustos.indiceQueEntra]
             );
 
-            if (sai === null) {
+            if (indiceQueSai === null) {
                 return "ilimitado";
-                throw new Error(
-                    "Não foi possível determinar a variável que sai da base."
-                );
             }
             console.log(
-                `Variável que sai da base: x_${sai}, razão mínima ε = ${epsilon}`
+                `Variável que sai da base: x_${problema.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`
             );
 
             atualizarBase(
                 problema,
-                sai,
-                problema.vnb[resultadoCustos.indiceQueEntra!]
+                indiceQueSai,
+                resultadoCustos.indiceQueEntra
             );
 
             it++;

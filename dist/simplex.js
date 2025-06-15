@@ -24,6 +24,7 @@ function formarProblemaArtificial(p) {
     const vb = Array.from({ length: m }, (_, j) => n + j);
     // Índices não-básicos: variáveis originais (0 até n-1)
     const vnb = Array.from({ length: n }, (_, i) => i);
+    console.log("vb e vnb artificiais:", vb, vnb);
     return {
         A: novaA,
         b,
@@ -57,5 +58,11 @@ function calcularCustosRelativos(problema) {
         }
     });
     console.log("Indice que entra: " + indiceQueEntra);
-    return { custosRelativos, lambdaT, invB, indiceQueEntra };
+    return {
+        custosRelativos,
+        lambdaT,
+        invB,
+        indiceQueEntra,
+        custo: menorCusto,
+    };
 }

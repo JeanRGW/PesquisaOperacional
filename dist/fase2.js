@@ -39,7 +39,9 @@ function calcularSolucaoBasica(problema) {
     return { x, xB, xN };
 }
 // Passo 4: Calcular direção simplex (y = B⁻¹ a_Nk)
-function calcularDirecaoSimplex(A, invB, variavelEntrante) {
+function calcularDirecaoSimplex(A, invB, indiceQueEntra, variaveisNaoBasicas) {
+    const variavelEntrante = variaveisNaoBasicas[indiceQueEntra];
+    console.log(variavelEntrante);
     const aNk = A.map((linha) => linha[variavelEntrante]); // coluna da variável entrante
     const aNkColuna = aNk.map((x) => [x]);
     const direcao = (0, multiplicarMatriz_1.default)(invB, aNkColuna);
@@ -70,21 +72,19 @@ function fase2(problema) {
             break;
         }
         else {
-            const direcao = calcularDirecaoSimplex(problema.A, resultadoCustos.invB, problema.vnb[resultadoCustos.indiceQueEntra]);
+            const direcao = calcularDirecaoSimplex(problema.A, resultadoCustos.invB, resultadoCustos.indiceQueEntra, problema.vnb);
             const xB = problema.vb
                 .map((j) => solucaoBasica.x[j])
                 .map((val) => [val]);
-            const { sai, epsilon } = (0, fase1_1.determinarVariavelQueSai)(direcao, xB, problema.vb);
+            const { indiceQueSai, epsilon } = (0, fase1_1.determinarVariavelQueSai)(direcao, xB);
             console.log("Epsilon: " + epsilon);
             console.log("Logs ultra sérios");
-            console.log(sai, resultadoCustos.indiceQueEntra);
-            console.log(problema.vb[sai], problema.vnb[resultadoCustos.indiceQueEntra]);
-            if (sai === null) {
+            console.log(problema.vb[indiceQueSai], problema.vnb[resultadoCustos.indiceQueEntra]);
+            if (indiceQueSai === null) {
                 return "ilimitado";
-                throw new Error("Não foi possível determinar a variável que sai da base.");
             }
-            console.log(`Variável que sai da base: x_${sai}, razão mínima ε = ${epsilon}`);
-            (0, fase1_1.atualizarBase)(problema, sai, problema.vnb[resultadoCustos.indiceQueEntra]);
+            console.log(`Variável que sai da base: x_${problema.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`);
+            (0, fase1_1.atualizarBase)(problema, indiceQueSai, resultadoCustos.indiceQueEntra);
             it++;
         }
     } while (it < maxIt);

@@ -82,8 +82,14 @@ function testeOtimalidadeFase1(
 function calcularDirecaoSimplex(
     A: number[][],
     invB: number[][],
-    variavelEntrante: number
+    indiceQueEntra: number,
+    variaveisNaoBasicas: number[]
 ): number[][] {
+    console.log(indiceQueEntra);
+    console.log(variaveisNaoBasicas);
+    const variavelEntrante = variaveisNaoBasicas[indiceQueEntra];
+    console.log(variavelEntrante);
+
     const aNk = A.map((linha) => linha[variavelEntrante]); // coluna da variável entrante
     const aNkColuna = aNk.map((x) => [x]);
     const direcao = multiplicarMatriz(invB, aNkColuna);
@@ -93,9 +99,8 @@ function calcularDirecaoSimplex(
 
 export function determinarVariavelQueSai(
     y: number[][], // vetor coluna (m x 1)
-    xB: number[][], // vetor coluna (m x 1)
-    variaveisBasicas: number[]
-): { sai: number | null; epsilon: number } {
+    xB: number[][] // vetor coluna (m x 1)
+): { indiceQueSai: number | null; epsilon: number } {
     let minRazao = Infinity;
     let indiceMinimo = -1;
 
@@ -115,24 +120,19 @@ export function determinarVariavelQueSai(
         console.warn(
             "Problema ilimitado: nenhuma direção positiva encontrada."
         );
-        return { sai: null, epsilon: Infinity };
+        return { indiceQueSai: null, epsilon: Infinity };
     }
 
-    const sai = variaveisBasicas[indiceMinimo];
-    return { sai, epsilon: minRazao };
+    return { indiceQueSai: indiceMinimo, epsilon: minRazao };
 }
 
 export function atualizarBase(
     problema: Problema,
-    sai: number, // índice da variável que sai da base
-    entra: number // índice da variável que entra na base
+    posSai: number, // índice da variável que sai da base
+    posEntra: number // índice da variável que entra na base
 ): void {
-    const posSai = problema.vb.indexOf(sai);
-    const posEntra = problema.vnb.indexOf(entra);
-
-    if (posSai === -1 || posEntra === -1) {
-        throw new Error("Erro ao atualizar base: índices inválidos.");
-    }
+    const entra = problema.vnb[posEntra];
+    const sai = problema.vb[posSai];
 
     // Troca os índices nas listas de variáveis
     problema.vb[posSai] = entra;
@@ -171,15 +171,10 @@ export default function fase1(
 
         console.log("Solução Básica Inicial:", x);
 
-        const { custosRelativos, lambdaT, invB } =
+        const { custosRelativos, lambdaT, invB, indiceQueEntra, custo } =
             calcularCustosRelativos(problemaArtificial);
 
         console.log("Custos Reduzidos:", custosRelativos);
-
-        const { entra, custo } = escolherVariavelQueEntra(
-            custosRelativos,
-            problemaArtificial.vnb
-        );
 
         const status = testeOtimalidadeFase1(
             custo,
@@ -189,8 +184,13 @@ export default function fase1(
 
         console.log(status);
 
-        if (status === "continua" && entra !== null) {
-            const y = calcularDirecaoSimplex(problemaArtificial.A, invB, entra);
+        if (status === "continua" && indiceQueEntra !== null) {
+            const y = calcularDirecaoSimplex(
+                problemaArtificial.A,
+                invB,
+                indiceQueEntra,
+                problemaArtificial.vnb
+            );
 
             if (y.every((val) => val[0] <= 0))
                 throw new Error(
@@ -203,13 +203,9 @@ export default function fase1(
 
             console.log("xB: " + xB);
 
-            const { sai, epsilon } = determinarVariavelQueSai(
-                y,
-                xB,
-                problemaArtificial.vb
-            );
+            const { indiceQueSai, epsilon } = determinarVariavelQueSai(y, xB);
 
-            if (!sai) {
+            if (indiceQueSai === null) {
                 console.log(
                     "Não foi possível determinar a variável que sai da base."
                 );
@@ -217,10 +213,10 @@ export default function fase1(
                 return "ilimitado";
             }
             console.log(
-                `Variável que sai da base: x_${sai}, razão mínima ε = ${epsilon}`
+                `Variável que sai da base: x_${problemaArtificial.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`
             );
 
-            atualizarBase(problemaArtificial, sai, entra);
+            atualizarBase(problemaArtificial, indiceQueSai, indiceQueEntra);
             if (!problemaArtificial.vb.some((j) => j >= n))
                 artificiaisNaBase = false;
 
