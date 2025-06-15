@@ -14,8 +14,6 @@ function solucaoBasicaInicial(problemaArtificial) {
     const { A, vb } = problemaArtificial;
     const n = A[0].length;
     const B = A.map((linha) => vb.map((j) => linha[j]));
-    console.log("Matriz B:", B);
-    console.log("Vetor b:", problemaArtificial.b);
     const invB = (0, inversa_1.default)(B);
     if (!invB) {
         console.table(B);
@@ -119,7 +117,7 @@ function fase1(problema) {
     let it = 1;
     let artificiaisNaBase = true;
     do {
-        console.log(`Iteração ${it}`);
+        console.log(`Iteração ${it} da fase 1:`);
         const x = solucaoBasicaInicial(problemaArtificial);
         console.log("Solução Básica Inicial:", x);
         const { custosRelativos, lambdaT, invB, indiceQueEntra, custo } = (0, simplex_1.calcularCustosRelativos)(problemaArtificial);

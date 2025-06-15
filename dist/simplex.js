@@ -39,7 +39,6 @@ function formarProblemaArtificial(p) {
 function calcularCustosRelativos(problema) {
     const { A, b, c, vb, vnb } = problema;
     const B = A.map((linha) => vb.map((j) => linha[j]));
-    console.table(B);
     const invB = (0, inversa_1.default)(B);
     if (!invB)
         throw new Error("A matriz B não é inversível: \n" + JSON.stringify(B));

@@ -16,12 +16,9 @@ function calcularSolucaoBasica(problema: Problema): SolucaoBasica {
 
     // Matriz B com colunas da base
     const B = A.map((linha) => vb.map((j) => linha[j]));
-    console.table(B);
     console.log(vb);
 
     const invB = inversa(B);
-
-    console.table(invB);
 
     if (!invB) {
         console.table(B);
@@ -81,8 +78,6 @@ export default function fase2(problema: Problema) {
     console.log("Indices:", problema.vb, problema.vnb);
     const B = problema.A.map((linha) => problema.vb.map((j) => linha[j]));
 
-    console.table(B);
-
     const { n } = problema;
     const maxIt = 1000;
     let it = 1;
@@ -90,7 +85,7 @@ export default function fase2(problema: Problema) {
     let solucaoBasica: SolucaoBasica | null = null;
 
     do {
-        console.log(`Iteração ${it} da fase 2`);
+        console.log(`Iteração ${it} da fase 2:`);
 
         solucaoBasica = calcularSolucaoBasica(problema);
         const resultadoCustos = calcularCustosRelativos(problema);

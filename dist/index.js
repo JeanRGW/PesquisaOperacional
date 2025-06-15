@@ -9,6 +9,8 @@ const fase1_1 = __importDefault(require("./fase1"));
 const fase2_1 = __importDefault(require("./fase2"));
 function main() {
     const problema = (0, lerProblema_1.default)();
+    if (problema === null)
+        throw new Error("Não foi possível ler o problema");
     let { c, b, isMax, A, ops } = problema;
     function inverterRestricao(i) {
         if (ops[i].includes(">"))

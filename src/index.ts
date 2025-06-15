@@ -5,6 +5,10 @@ import fase2 from "./fase2";
 
 export default function main() {
     const problema = lerProblema();
+
+    if(problema === null)
+        throw new Error("Não foi possível ler o problema")
+
     let { c, b, isMax, A, ops } = problema;
 
     function inverterRestricao(i: number) {

@@ -13,10 +13,8 @@ function calcularSolucaoBasica(problema) {
     const n = A[0].length;
     // Matriz B com colunas da base
     const B = A.map((linha) => vb.map((j) => linha[j]));
-    console.table(B);
     console.log(vb);
     const invB = (0, inversa_1.default)(B);
-    console.table(invB);
     if (!invB) {
         console.table(B);
         throw new Error("A matriz B não é invertível.");
@@ -54,13 +52,12 @@ function calcularValorObjetivo(c, x) {
 function fase2(problema) {
     console.log("Indices:", problema.vb, problema.vnb);
     const B = problema.A.map((linha) => problema.vb.map((j) => linha[j]));
-    console.table(B);
     const { n } = problema;
     const maxIt = 1000;
     let it = 1;
     let solucaoBasica = null;
     do {
-        console.log(`Iteração ${it} da fase 2`);
+        console.log(`Iteração ${it} da fase 2:`);
         solucaoBasica = calcularSolucaoBasica(problema);
         const resultadoCustos = (0, simplex_1.calcularCustosRelativos)(problema);
         if (resultadoCustos.indiceQueEntra === null) {

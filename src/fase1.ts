@@ -10,9 +10,6 @@ function solucaoBasicaInicial(problemaArtificial: Problema) {
 
     const B = A.map((linha) => vb.map((j) => linha[j]));
 
-    console.log("Matriz B:", B);
-    console.log("Vetor b:", problemaArtificial.b);
-
     const invB = inversa(B);
 
     if (!invB) {
@@ -166,7 +163,7 @@ export default function fase1(
     let artificiaisNaBase = true;
 
     do {
-        console.log(`Iteração ${it}`);
+        console.log(`Iteração ${it} da fase 1:`);
         const x = solucaoBasicaInicial(problemaArtificial);
 
         console.log("Solução Básica Inicial:", x);
@@ -175,6 +172,7 @@ export default function fase1(
             calcularCustosRelativos(problemaArtificial);
 
         console.log("Custos Reduzidos:", custosRelativos);
+        console.lo
 
         const status = testeOtimalidadeFase1(
             custo,

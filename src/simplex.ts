@@ -43,9 +43,7 @@ export function calcularCustosRelativos(problema: Problema) {
     const { A, b, c, vb, vnb } = problema;
 
     const B = A.map((linha) => vb.map((j) => linha[j]));
-
-    console.table(B);
-
+    
     const invB = inversa(B);
     if (!invB)
         throw new Error("A matriz B não é inversível: \n" + JSON.stringify(B));
