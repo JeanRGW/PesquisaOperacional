@@ -26,12 +26,10 @@ function runTestsFromFile(path = "testCases.txt") {
         (0, fs_1.writeFileSync)("test.txt", test.input);
         const result = (0, index_1.default)();
         let testPassed = false;
-        if (typeof test.expected === "number") {
-            const resultRounded = Number(parseFloat(result).toFixed(1));
+        if (typeof test.expected !== "string") {
+            const resultRounded = Number(parseFloat(result.z).toFixed(1));
             const expectedRounded = Number(test.expected.toFixed(1));
-            testPassed =
-                resultRounded === expectedRounded ||
-                    resultRounded === -expectedRounded;
+            testPassed = resultRounded === expectedRounded;
         }
         else if (typeof result === "string") {
             testPassed =
@@ -43,7 +41,10 @@ function runTestsFromFile(path = "testCases.txt") {
         }
         else {
             console.error(`Test ${i + 1} failed ❌`);
-            console.error(`Expected: ${test.expected}, Got: ${result}`);
+            if (typeof result === "string")
+                console.error(`Expected: ${test.expected}, Got: ${result}`);
+            else
+                console.error(`Expected: ${test.expected}, Got: ${result.z}`);
         }
     }
     console.log(`\n${passed} / ${tests.length} tests passed.`);

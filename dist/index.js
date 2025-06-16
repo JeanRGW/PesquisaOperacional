@@ -43,7 +43,7 @@ function main() {
         usarFase1 = true;
         console.log("Caso2");
     }
-    let resultado = -6969;
+    let resultado = null;
     if (usarFase1) {
         resultado = (0, fase1_1.default)(problema);
     }
@@ -78,9 +78,22 @@ function main() {
             resultado = (0, fase2_1.default)(problema);
         }
     }
-    resultado =
-        isMax && typeof resultado === "number" ? resultado * -1 : resultado;
-    console.log(resultado);
+    if (typeof resultado !== "string") {
+        resultado.z = isMax ? resultado.z * -1 : resultado.z;
+        console.log(`Z = ${resultado.z}`);
+        problema.vb.sort((a, b) => a - b);
+        problema.vnb.sort((a, b) => a - b);
+        let vbs = "";
+        problema.vb.forEach((x) => {
+            vbs += `X${x + 1}=${resultado.solucaoBasica.x[x]}   `;
+        });
+        console.log("Valores das variáveis básicas: " + vbs);
+        let vnbs = "";
+        problema.vnb.forEach((x) => {
+            vnbs += `X${x + 1}=${resultado.solucaoBasica.x[x]}   `;
+        });
+        console.log("Valores das variáveis não básicas: " + vnbs);
+    }
     return resultado;
 }
 main();

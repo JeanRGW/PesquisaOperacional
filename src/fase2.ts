@@ -1,26 +1,12 @@
-import { atualizarBase, determinarVariavelQueSai } from "./fase1";
-import { calcularCustosRelativos, calcularSolucaoBasica, SolucaoBasica } from "./simplex";
+import {
+    atualizarBase,
+    calcularCustosRelativos,
+    calcularSolucaoBasica,
+    SolucaoBasica,
+    determinarVariavelQueSai,
+    calcularDirecaoSimplex,
+} from "./simplex";
 import Problema from "./types/types";
-import inversa from "./utils/inversa";
-import multiplicarMatriz from "./utils/multiplicarMatriz";
-
-
-// Passo 4: Calcular direção simplex (y = B⁻¹ a_Nk)
-function calcularDirecaoSimplex(
-    A: number[][],
-    invB: number[][],
-    indiceQueEntra: number,
-    variaveisNaoBasicas: number[]
-): number[][] {
-    const variavelEntrante = variaveisNaoBasicas[indiceQueEntra];
-    console.log(variavelEntrante);
-
-    const aNk = A.map((linha) => linha[variavelEntrante]); // coluna da variável entrante
-    const aNkColuna = aNk.map((x) => [x]);
-    const direcao = multiplicarMatriz(invB, aNkColuna);
-    console.log("Direção simplex (y):", direcao);
-    return direcao;
-}
 
 function calcularValorObjetivo(c: number[], x: number[]): number {
     return c.reduce((soma, coef, i) => soma + coef * x[i], 0);
@@ -37,17 +23,13 @@ export default function fase2(problema: Problema) {
     let solucaoBasica: SolucaoBasica | null = null;
 
     do {
-        console.log(`Iteração ${it} da fase 2:`);
+        console.log(`\nIteração ${it} da fase 2:`);
 
         solucaoBasica = calcularSolucaoBasica(problema);
         const resultadoCustos = calcularCustosRelativos(problema);
 
         if (resultadoCustos.indiceQueEntra === null) {
-            console.log("Solução ótima encontrada:");
-            console.log(solucaoBasica.x);
-            console.log(problema.c);
-            const z = calcularValorObjetivo(solucaoBasica.x, problema.c);
-            console.log("Valor da função objetivo:", z);
+            console.log("Solução ótima encontrada");
             break;
         } else {
             const direcao = calcularDirecaoSimplex(
@@ -66,18 +48,11 @@ export default function fase2(problema: Problema) {
                 xB
             );
 
-            console.log("Epsilon: " + epsilon);
-            console.log("Logs ultra sérios");
-            console.log(
-                problema.vb[indiceQueSai!],
-                problema.vnb[resultadoCustos.indiceQueEntra]
-            );
-
             if (indiceQueSai === null) {
                 return "ilimitado";
             }
             console.log(
-                `Variável que sai da base: x_${problema.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`
+                `Variável que sai da base: X${problema.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`
             );
 
             atualizarBase(
@@ -90,8 +65,8 @@ export default function fase2(problema: Problema) {
         }
     } while (it < maxIt);
 
-    console.log("Fase 2 concluída. Fé");
-    console.log(solucaoBasica);
+    console.log("Fase 2 concluída.");
 
-    return calcularValorObjetivo(solucaoBasica.x, problema.c);
+    const z = calcularValorObjetivo(solucaoBasica.x, problema.c);
+    return { solucaoBasica, z };
 }

@@ -1,0 +1,3 @@
+Substituir a função em test.txt e rodar "node dist".
+
+"node dist/RunTests" executa os exercícios em testCases.txt em ordem e compara com os valores do arquivo, arredondando os valores.

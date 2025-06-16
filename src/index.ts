@@ -2,12 +2,12 @@ import lerProblema from "./lerProblema";
 
 import fase1 from "./fase1";
 import fase2 from "./fase2";
+import { SolucaoBasica } from "./simplex";
 
 export default function main() {
     const problema = lerProblema();
 
-    if(problema === null)
-        throw new Error("Não foi possível ler o problema")
+    if (problema === null) throw new Error("Não foi possível ler o problema");
 
     let { c, b, isMax, A, ops } = problema;
 
@@ -53,7 +53,11 @@ export default function main() {
         console.log("Caso2");
     }
 
-    let resultado: number | "infactível" | "ilimitado" = -6969;
+    let resultado:
+        | { solucaoBasica: SolucaoBasica; z: number }
+        | "infactível"
+        | "ilimitado"
+        | null = null;
 
     if (usarFase1) {
         resultado = fase1(problema);
@@ -93,9 +97,26 @@ export default function main() {
         }
     }
 
-    resultado =
-        isMax && typeof resultado === "number" ? resultado * -1 : resultado;
-    console.log(resultado);
+    if (typeof resultado !== "string") {
+        resultado.z = isMax ? resultado.z * -1 : resultado.z;
+        console.log(`Z = ${resultado.z}`);
+
+        problema.vb.sort((a, b) => a - b);
+        problema.vnb.sort((a, b) => a - b);
+
+        let vbs = "";
+        problema.vb.forEach((x) => {
+            vbs += `X${x + 1}=${resultado.solucaoBasica.x[x]}   `;
+        });
+        console.log("Valores das variáveis básicas: " + vbs);
+
+        let vnbs = "";
+        problema.vnb.forEach((x) => {
+            vnbs += `X${x + 1}=${resultado.solucaoBasica.x[x]}   `;
+        });
+        console.log("Valores das variáveis não básicas: " + vnbs);
+    }
+
     return resultado;
 }
 

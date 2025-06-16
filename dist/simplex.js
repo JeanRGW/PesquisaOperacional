@@ -3,6 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.determinarVariavelQueSai = determinarVariavelQueSai;
+exports.atualizarBase = atualizarBase;
 exports.formarProblemaArtificial = formarProblemaArtificial;
 exports.calcularCustosRelativos = calcularCustosRelativos;
 exports.calcularSolucaoBasica = calcularSolucaoBasica;
@@ -10,6 +12,37 @@ exports.calcularDirecaoSimplex = calcularDirecaoSimplex;
 const inversa_1 = __importDefault(require("./utils/inversa"));
 const multiplicarMatriz_1 = __importDefault(require("./utils/multiplicarMatriz"));
 const produtoInterno_1 = __importDefault(require("./utils/produtoInterno"));
+function determinarVariavelQueSai(y, // vetor coluna (m x 1)
+xB // vetor coluna (m x 1)
+) {
+    let minRazao = Infinity;
+    let indiceMinimo = -1;
+    for (let i = 0; i < y.length; i++) {
+        const yi = y[i][0];
+        if (yi > 0) {
+            const razao = xB[i][0] / yi;
+            if (razao < minRazao) {
+                minRazao = razao;
+                indiceMinimo = i;
+            }
+        }
+    }
+    // Nenhuma razão válida -> problema ilimitado
+    if (indiceMinimo === -1) {
+        console.warn("Problema ilimitado: nenhuma direção positiva encontrada.");
+        return { indiceQueSai: null, epsilon: Infinity };
+    }
+    return { indiceQueSai: indiceMinimo, epsilon: minRazao };
+}
+function atualizarBase(problema, posSai, // índice da variável que sai da base
+posEntra // índice da variável que entra na base
+) {
+    const entra = problema.vnb[posEntra];
+    const sai = problema.vb[posSai];
+    // Troca os índices nas listas de variáveis
+    problema.vb[posSai] = entra;
+    problema.vnb[posEntra] = sai;
+}
 function formarProblemaArtificial(p) {
     const { A, b } = p;
     const m = b.length; // número de restrições
@@ -26,7 +59,6 @@ function formarProblemaArtificial(p) {
     const vb = Array.from({ length: m }, (_, j) => n + j);
     // Índices não-básicos: variáveis originais (0 até n-1)
     const vnb = Array.from({ length: n }, (_, i) => i);
-    console.log("vb e vnb artificiais:", vb, vnb);
     return {
         A: novaA,
         b,
@@ -72,7 +104,6 @@ function calcularSolucaoBasica(problema) {
     const n = A[0].length;
     // Matriz B com colunas da base
     const B = A.map((linha) => vb.map((j) => linha[j]));
-    console.log(vb);
     const invB = (0, inversa_1.default)(B);
     if (!invB) {
         console.table(B);
@@ -85,7 +116,6 @@ function calcularSolucaoBasica(problema) {
             throw new Error(`Solução inviável: valor negativo em xB[${i}] = ${xB[i]}`);
         }
     }
-    console.log(xB);
     // xN são zeros
     const xN = Array(vnb.length).fill(0);
     // Monta o vetor x completo (xN = 0)
@@ -97,10 +127,8 @@ function calcularSolucaoBasica(problema) {
 }
 function calcularDirecaoSimplex(A, invB, indiceQueEntra, variaveisNaoBasicas) {
     const variavelEntrante = variaveisNaoBasicas[indiceQueEntra];
-    console.log(variavelEntrante);
     const aNk = A.map((linha) => linha[variavelEntrante]); // coluna da variável entrante
     const aNkColuna = aNk.map((x) => [x]);
     const direcao = (0, multiplicarMatriz_1.default)(invB, aNkColuna);
-    console.log("Direção simplex (y):", direcao);
     return direcao;
 }

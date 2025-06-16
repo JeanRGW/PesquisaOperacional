@@ -3,30 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.determinarVariavelQueSai = determinarVariavelQueSai;
-exports.atualizarBase = atualizarBase;
 exports.default = fase1;
 const fase2_1 = __importDefault(require("./fase2"));
 const simplex_1 = require("./simplex");
-// Passo 2.3: Determinar qual variável entra na base
-function escolherVariavelQueEntra(custosRelativos, variaveisNaoBasicas) {
-    let minCusto = Infinity;
-    let indice = -1;
-    custosRelativos.forEach((custo, i) => {
-        if (custo < minCusto) {
-            minCusto = custo;
-            indice = i;
-        }
-    });
-    const entra = minCusto < 0 ? variaveisNaoBasicas[indice] : null;
-    return { entra, custo: minCusto };
-}
-// Passo 3: Teste de Otimalidade da Fase I
 function testeOtimalidadeFase1(custoMinimo, variaveisBasicas, numVariaveisOriginais) {
     if (custoMinimo >= 0) {
         const artificiaisNaBase = variaveisBasicas.some((j) => j >= numVariaveisOriginais);
         if (artificiaisNaBase) {
-            console.log("Problema inviável: ainda há variáveis artificiais na base.");
             return "inviavel";
         }
         else {
@@ -34,38 +17,7 @@ function testeOtimalidadeFase1(custoMinimo, variaveisBasicas, numVariaveisOrigin
             return "fase2";
         }
     }
-    return "continua"; // Caso contrário, segue com o algoritmo (ainda não ótimo)
-}
-function determinarVariavelQueSai(y, // vetor coluna (m x 1)
-xB // vetor coluna (m x 1)
-) {
-    let minRazao = Infinity;
-    let indiceMinimo = -1;
-    for (let i = 0; i < y.length; i++) {
-        const yi = y[i][0];
-        if (yi > 0) {
-            const razao = xB[i][0] / yi;
-            if (razao < minRazao) {
-                minRazao = razao;
-                indiceMinimo = i;
-            }
-        }
-    }
-    // Nenhuma razão válida -> problema ilimitado
-    if (indiceMinimo === -1) {
-        console.warn("Problema ilimitado: nenhuma direção positiva encontrada.");
-        return { indiceQueSai: null, epsilon: Infinity };
-    }
-    return { indiceQueSai: indiceMinimo, epsilon: minRazao };
-}
-function atualizarBase(problema, posSai, // índice da variável que sai da base
-posEntra // índice da variável que entra na base
-) {
-    const entra = problema.vnb[posEntra];
-    const sai = problema.vb[posSai];
-    // Troca os índices nas listas de variáveis
-    problema.vb[posSai] = entra;
-    problema.vnb[posEntra] = sai;
+    return "continua";
 }
 function removerVariaveisArtificiais(problema) {
     const { n } = problema; // número de variáveis originais
@@ -87,13 +39,11 @@ function fase1(problema) {
     let it = 1;
     let artificiaisNaBase = true;
     do {
-        console.log(`Iteração ${it} da fase 1:`);
+        console.log(`\nIteração ${it} da fase 1:`);
         const { x } = (0, simplex_1.calcularSolucaoBasica)(problemaArtificial);
-        console.log("Solução Básica Inicial:", x);
+        console.log("Solução Básica:", x);
         const { custosRelativos, lambdaT, invB, indiceQueEntra, custo } = (0, simplex_1.calcularCustosRelativos)(problemaArtificial);
-        console.log("Custos Reduzidos:", custosRelativos);
         const status = testeOtimalidadeFase1(custo, problemaArtificial.vb, problema.A[0].length);
-        console.log(status);
         if (status === "continua" && indiceQueEntra !== null) {
             const y = (0, simplex_1.calcularDirecaoSimplex)(problemaArtificial.A, invB, indiceQueEntra, problemaArtificial.vnb);
             if (y.every((val) => val[0] <= 0))
@@ -101,14 +51,13 @@ function fase1(problema) {
             const xB = problemaArtificial.vb
                 .map((j) => x[j])
                 .map((val) => [val]);
-            console.log("xB: " + xB);
-            const { indiceQueSai, epsilon } = determinarVariavelQueSai(y, xB);
+            const { indiceQueSai, epsilon } = (0, simplex_1.determinarVariavelQueSai)(y, xB);
             if (indiceQueSai === null) {
                 console.log("Não foi possível determinar a variável que sai da base.");
                 return "ilimitado";
             }
-            console.log(`Variável que sai da base: x_${problemaArtificial.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`);
-            atualizarBase(problemaArtificial, indiceQueSai, indiceQueEntra);
+            console.log(`Variável que sai da base: X${problemaArtificial.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`);
+            (0, simplex_1.atualizarBase)(problemaArtificial, indiceQueSai, indiceQueEntra);
             if (!problemaArtificial.vb.some((j) => j >= n))
                 artificiaisNaBase = false;
             it++;
@@ -126,10 +75,9 @@ function fase1(problema) {
             }
         }
     } while (artificiaisNaBase && it < maxIt);
-    console.log(problemaArtificial.vb);
-    console.log(problemaArtificial.vnb);
     console.log("Base inicial encontrada para Fase 2: " + problemaArtificial.vb);
     removerVariaveisArtificiais(problemaArtificial);
-    problemaArtificial.c = cOrigianis;
-    return (0, fase2_1.default)(problemaArtificial);
+    problema.vb = problemaArtificial.vb;
+    problema.vnb = problemaArtificial.vnb;
+    return (0, fase2_1.default)(problema);
 }

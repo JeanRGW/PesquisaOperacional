@@ -34,13 +34,13 @@ function runTestsFromFile(path = "testCases.txt") {
 
         let testPassed = false;
 
-        if (typeof test.expected === "number") {
-            const resultRounded = Number(parseFloat(result as any).toFixed(1));
+        if (typeof test.expected !== "string") {
+            const resultRounded = Number(
+                parseFloat((result as any).z).toFixed(1)
+            );
             const expectedRounded = Number(test.expected.toFixed(1));
 
-            testPassed =
-                resultRounded === expectedRounded ||
-                resultRounded === -expectedRounded;
+            testPassed = resultRounded === expectedRounded;
         } else if (typeof result === "string") {
             testPassed =
                 result.trim().toLowerCase() === test.expected.toLowerCase();
@@ -51,7 +51,9 @@ function runTestsFromFile(path = "testCases.txt") {
             passed++;
         } else {
             console.error(`Test ${i + 1} failed ❌`);
-            console.error(`Expected: ${test.expected}, Got: ${result}`);
+            if (typeof result === "string")
+                console.error(`Expected: ${test.expected}, Got: ${result}`);
+            else console.error(`Expected: ${test.expected}, Got: ${result.z}`);
         }
     }
 
