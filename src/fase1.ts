@@ -1,35 +1,7 @@
 import fase2 from "./fase2";
-import { formarProblemaArtificial, calcularCustosRelativos } from "./simplex";
-import inversa from "./utils/inversa";
+import { formarProblemaArtificial, calcularCustosRelativos, calcularSolucaoBasica, calcularDirecaoSimplex } from "./simplex";
 import multiplicarMatriz from "./utils/multiplicarMatriz";
-import Problema from "./types";
-
-function solucaoBasicaInicial(problemaArtificial: Problema) {
-    const { A, vb } = problemaArtificial;
-    const n = A[0].length;
-
-    const B = A.map((linha) => vb.map((j) => linha[j]));
-
-    const invB = inversa(B);
-
-    if (!invB) {
-        console.table(B);
-
-        throw new Error(`A matriz B não é invertível.\n$`);
-    }
-
-    const xB = multiplicarMatriz(
-        invB,
-        problemaArtificial.b.map((x) => [x])
-    );
-
-    const x: number[] = Array(n).fill(0);
-    vb.forEach((indice, i) => {
-        x[indice] = xB[i][0];
-    });
-
-    return x;
-}
+import Problema from "./types/types";
 
 // Passo 2.3: Determinar qual variável entra na base
 function escolherVariavelQueEntra(
@@ -73,25 +45,6 @@ function testeOtimalidadeFase1(
         }
     }
     return "continua"; // Caso contrário, segue com o algoritmo (ainda não ótimo)
-}
-
-// Passo 4: Calcular direção simplex (y = B⁻¹ a_Nk)
-function calcularDirecaoSimplex(
-    A: number[][],
-    invB: number[][],
-    indiceQueEntra: number,
-    variaveisNaoBasicas: number[]
-): number[][] {
-    console.log(indiceQueEntra);
-    console.log(variaveisNaoBasicas);
-    const variavelEntrante = variaveisNaoBasicas[indiceQueEntra];
-    console.log(variavelEntrante);
-
-    const aNk = A.map((linha) => linha[variavelEntrante]); // coluna da variável entrante
-    const aNkColuna = aNk.map((x) => [x]);
-    const direcao = multiplicarMatriz(invB, aNkColuna);
-    console.log("Direção simplex (y):", direcao);
-    return direcao;
 }
 
 export function determinarVariavelQueSai(
@@ -164,7 +117,7 @@ export default function fase1(
 
     do {
         console.log(`Iteração ${it} da fase 1:`);
-        const x = solucaoBasicaInicial(problemaArtificial);
+        const {x} = calcularSolucaoBasica(problemaArtificial);
 
         console.log("Solução Básica Inicial:", x);
 

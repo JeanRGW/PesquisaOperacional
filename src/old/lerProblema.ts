@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import Problema from "../types";
+import Problema from "../types/types";
 
 function preparaEntrada(): string[][] {
     const rFile = readFileSync("test.txt", "utf-8");

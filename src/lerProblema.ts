@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import Problema from "./types";
+import Problema from "./types/types";
 
 const objectiveRegex = /(Min|Max).*=\s*/i;
 const termsRegex = /([+-]?\d*\.?\d*)x(\d+)/g;

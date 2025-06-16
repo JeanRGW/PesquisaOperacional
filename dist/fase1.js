@@ -8,24 +8,6 @@ exports.atualizarBase = atualizarBase;
 exports.default = fase1;
 const fase2_1 = __importDefault(require("./fase2"));
 const simplex_1 = require("./simplex");
-const inversa_1 = __importDefault(require("./utils/inversa"));
-const multiplicarMatriz_1 = __importDefault(require("./utils/multiplicarMatriz"));
-function solucaoBasicaInicial(problemaArtificial) {
-    const { A, vb } = problemaArtificial;
-    const n = A[0].length;
-    const B = A.map((linha) => vb.map((j) => linha[j]));
-    const invB = (0, inversa_1.default)(B);
-    if (!invB) {
-        console.table(B);
-        throw new Error(`A matriz B não é invertível.\n$`);
-    }
-    const xB = (0, multiplicarMatriz_1.default)(invB, problemaArtificial.b.map((x) => [x]));
-    const x = Array(n).fill(0);
-    vb.forEach((indice, i) => {
-        x[indice] = xB[i][0];
-    });
-    return x;
-}
 // Passo 2.3: Determinar qual variável entra na base
 function escolherVariavelQueEntra(custosRelativos, variaveisNaoBasicas) {
     let minCusto = Infinity;
@@ -53,18 +35,6 @@ function testeOtimalidadeFase1(custoMinimo, variaveisBasicas, numVariaveisOrigin
         }
     }
     return "continua"; // Caso contrário, segue com o algoritmo (ainda não ótimo)
-}
-// Passo 4: Calcular direção simplex (y = B⁻¹ a_Nk)
-function calcularDirecaoSimplex(A, invB, indiceQueEntra, variaveisNaoBasicas) {
-    console.log(indiceQueEntra);
-    console.log(variaveisNaoBasicas);
-    const variavelEntrante = variaveisNaoBasicas[indiceQueEntra];
-    console.log(variavelEntrante);
-    const aNk = A.map((linha) => linha[variavelEntrante]); // coluna da variável entrante
-    const aNkColuna = aNk.map((x) => [x]);
-    const direcao = (0, multiplicarMatriz_1.default)(invB, aNkColuna);
-    console.log("Direção simplex (y):", direcao);
-    return direcao;
 }
 function determinarVariavelQueSai(y, // vetor coluna (m x 1)
 xB // vetor coluna (m x 1)
@@ -118,14 +88,14 @@ function fase1(problema) {
     let artificiaisNaBase = true;
     do {
         console.log(`Iteração ${it} da fase 1:`);
-        const x = solucaoBasicaInicial(problemaArtificial);
+        const { x } = (0, simplex_1.calcularSolucaoBasica)(problemaArtificial);
         console.log("Solução Básica Inicial:", x);
         const { custosRelativos, lambdaT, invB, indiceQueEntra, custo } = (0, simplex_1.calcularCustosRelativos)(problemaArtificial);
         console.log("Custos Reduzidos:", custosRelativos);
         const status = testeOtimalidadeFase1(custo, problemaArtificial.vb, problema.A[0].length);
         console.log(status);
         if (status === "continua" && indiceQueEntra !== null) {
-            const y = calcularDirecaoSimplex(problemaArtificial.A, invB, indiceQueEntra, problemaArtificial.vnb);
+            const y = (0, simplex_1.calcularDirecaoSimplex)(problemaArtificial.A, invB, indiceQueEntra, problemaArtificial.vnb);
             if (y.every((val) => val[0] <= 0))
                 throw new Error("Problema não tem solução ótima finita, problema original infactível");
             const xB = problemaArtificial.vb

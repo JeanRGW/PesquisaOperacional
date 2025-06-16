@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.formarProblemaArtificial = formarProblemaArtificial;
 exports.calcularCustosRelativos = calcularCustosRelativos;
+exports.calcularSolucaoBasica = calcularSolucaoBasica;
+exports.calcularDirecaoSimplex = calcularDirecaoSimplex;
 const inversa_1 = __importDefault(require("./utils/inversa"));
 const multiplicarMatriz_1 = __importDefault(require("./utils/multiplicarMatriz"));
 const produtoInterno_1 = __importDefault(require("./utils/produtoInterno"));
@@ -64,4 +66,41 @@ function calcularCustosRelativos(problema) {
         indiceQueEntra,
         custo: menorCusto,
     };
+}
+function calcularSolucaoBasica(problema) {
+    const { A, b, vb, vnb } = problema;
+    const n = A[0].length;
+    // Matriz B com colunas da base
+    const B = A.map((linha) => vb.map((j) => linha[j]));
+    console.log(vb);
+    const invB = (0, inversa_1.default)(B);
+    if (!invB) {
+        console.table(B);
+        throw new Error("A matriz B não é invertível.");
+    }
+    // Resolve xB = invB * b
+    const xB = (0, multiplicarMatriz_1.default)(invB, b.map((v) => [v])).map((x) => x[0]);
+    for (let i = 0; i < xB.length; i++) {
+        if (xB[i] < -1e-8) {
+            throw new Error(`Solução inviável: valor negativo em xB[${i}] = ${xB[i]}`);
+        }
+    }
+    console.log(xB);
+    // xN são zeros
+    const xN = Array(vnb.length).fill(0);
+    // Monta o vetor x completo (xN = 0)
+    const x = Array(n).fill(0);
+    vb.forEach((indice, i) => {
+        x[indice] = xB[i];
+    });
+    return { x, xB, xN };
+}
+function calcularDirecaoSimplex(A, invB, indiceQueEntra, variaveisNaoBasicas) {
+    const variavelEntrante = variaveisNaoBasicas[indiceQueEntra];
+    console.log(variavelEntrante);
+    const aNk = A.map((linha) => linha[variavelEntrante]); // coluna da variável entrante
+    const aNkColuna = aNk.map((x) => [x]);
+    const direcao = (0, multiplicarMatriz_1.default)(invB, aNkColuna);
+    console.log("Direção simplex (y):", direcao);
+    return direcao;
 }
