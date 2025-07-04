@@ -22,7 +22,6 @@ function parseObjective(input: string[]): {
     const objectiveInput = input.shift()!;
 
     const objectiveMatch = objectiveInput.match(objectiveRegex)!;
-    console.log(objectiveMatch);
     const isMax = objectiveMatch[1].toLowerCase() === "max";
 
     const remainingObjective = objectiveInput.slice(objectiveMatch[0].length);
@@ -94,19 +93,19 @@ function parseConstraints(input: string[], nVars: number) {
     };
 }
 
-function handleOperators(A: number[][], c: number[], ops: string[]){
+function handleOperators(A: number[][], c: number[], ops: string[]) {
     ops.forEach((op, i) => {
-        const value = op.match("<")? 1 : op.match(">")? -1 : null
+        const value = op.match("<") ? 1 : op.match(">") ? -1 : null;
 
-        if(value !== null){
+        if (value !== null) {
             A.forEach((l, j) => {
-                l.push(j === i? value : 0)
-            })
+                l.push(j === i ? value : 0);
+            });
 
-            c.push(0)
+            c.push(0);
         }
-    })
-};
+    });
+}
 
 export default function lerProblema(): Problema | null {
     try {
@@ -119,8 +118,15 @@ export default function lerProblema(): Problema | null {
         handleOperators(A, c, ops);
 
         return {
-            isMax, A, b, c, n: c.length, ops, vb: [], vnb: []
-        }
+            isMax,
+            A,
+            b,
+            c,
+            n: c.length,
+            ops,
+            vb: [],
+            vnb: [],
+        };
     } catch (error) {
         console.error(error);
         return null;

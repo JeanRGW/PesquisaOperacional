@@ -46,9 +46,7 @@ export default function main() {
     ) {
         usarFase1 = true;
         console.log("Caso1");
-    }
-
-    if (colunasIdentidade.length < A.length) {
+    } else if (colunasIdentidade.length < A.length) {
         usarFase1 = true;
         console.log("Caso2");
     }
@@ -56,8 +54,7 @@ export default function main() {
     let resultado:
         | { solucaoBasica: SolucaoBasica; z: number }
         | "infactível"
-        | "ilimitado"
-        | null = null;
+        | "ilimitado";
 
     if (usarFase1) {
         resultado = fase1(problema);
@@ -80,6 +77,9 @@ export default function main() {
 
         if (indices.length !== A.length) {
             // Não encontrou base viável diretamente, executa fase 1
+            console.error(
+                "Não foi possível encontrar a base diretamente, executando fase 1"
+            );
             resultado = fase1(problema);
         } else {
             // Define base e não base diretamente
@@ -115,6 +115,8 @@ export default function main() {
             vnbs += `X${x + 1}=${resultado.solucaoBasica.x[x]}   `;
         });
         console.log("Valores das variáveis não básicas: " + vnbs);
+    } else {
+        console.log(resultado);
     }
 
     return resultado;

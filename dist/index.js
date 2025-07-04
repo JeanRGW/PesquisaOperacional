@@ -39,11 +39,11 @@ function main() {
         usarFase1 = true;
         console.log("Caso1");
     }
-    if (colunasIdentidade.length < A.length) {
+    else if (colunasIdentidade.length < A.length) {
         usarFase1 = true;
         console.log("Caso2");
     }
-    let resultado = null;
+    let resultado;
     if (usarFase1) {
         resultado = (0, fase1_1.default)(problema);
     }
@@ -63,6 +63,7 @@ function main() {
         }
         if (indices.length !== A.length) {
             // Não encontrou base viável diretamente, executa fase 1
+            console.error("Não foi possível encontrar a base diretamente, executando fase 1");
             resultado = (0, fase1_1.default)(problema);
         }
         else {
@@ -94,6 +95,7 @@ function main() {
         });
         console.log("Valores das variáveis não básicas: " + vnbs);
     }
+    console.log(resultado);
     return resultado;
 }
 main();

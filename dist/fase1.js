@@ -27,57 +27,41 @@ function removerVariaveisArtificiais(problema) {
     }
     // Remove colunas de A
     problema.A = problema.A.map((linha) => linha.filter((_, j) => j < n));
-    // Remove variáveis artificiais das listas
+    // Remove variáveis artificiais das listas de índices
     problema.vb = problema.vb.filter((j) => j < n);
     problema.vnb = problema.vnb.filter((j) => j < n);
 }
 function fase1(problema) {
     const n = problema.c.length;
-    const cOrigianis = [...problema.c];
     const problemaArtificial = (0, simplex_1.formarProblemaArtificial)(problema);
     const maxIt = 1000;
     let it = 1;
-    let artificiaisNaBase = true;
     do {
         console.log(`\nIteração ${it} da fase 1:`);
         const { x } = (0, simplex_1.calcularSolucaoBasica)(problemaArtificial);
-        console.log("Solução Básica:", x);
         const { custosRelativos, lambdaT, invB, indiceQueEntra, custo } = (0, simplex_1.calcularCustosRelativos)(problemaArtificial);
         const status = testeOtimalidadeFase1(custo, problemaArtificial.vb, problema.A[0].length);
-        if (status === "continua" && indiceQueEntra !== null) {
-            const y = (0, simplex_1.calcularDirecaoSimplex)(problemaArtificial.A, invB, indiceQueEntra, problemaArtificial.vnb);
-            if (y.every((val) => val[0] <= 0))
-                throw new Error("Problema não tem solução ótima finita, problema original infactível");
-            const xB = problemaArtificial.vb
-                .map((j) => x[j])
-                .map((val) => [val]);
-            const { indiceQueSai, epsilon } = (0, simplex_1.determinarVariavelQueSai)(y, xB);
-            if (indiceQueSai === null) {
-                console.log("Não foi possível determinar a variável que sai da base.");
-                return "ilimitado";
-            }
-            console.log(`Variável que sai da base: X${problemaArtificial.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`);
-            (0, simplex_1.atualizarBase)(problemaArtificial, indiceQueSai, indiceQueEntra);
-            if (!problemaArtificial.vb.some((j) => j >= n))
-                artificiaisNaBase = false;
-            it++;
+        if (status === "inviavel")
+            return "infactível";
+        if (status === "fase2") {
+            console.log("Base inicial encontrada para Fase 2: " + problemaArtificial.vb);
+            removerVariaveisArtificiais(problemaArtificial);
+            problema.vb = problemaArtificial.vb;
+            problema.vnb = problemaArtificial.vnb;
+            return (0, fase2_1.default)(problema);
         }
-        else {
-            if (status === "fase2") {
-                console.log("Iniciando Fase II com a base atual.");
-            }
-            else if (status === "inviavel") {
-                console.log("Problema inviável: não é possível encontrar uma solução.");
-                return "infactível";
-            }
-            else {
-                throw new Error("Isso não devia chegar aqui.");
-            }
+        const y = (0, simplex_1.calcularDirecaoSimplex)(problemaArtificial.A, invB, indiceQueEntra, problemaArtificial.vnb);
+        if (y.every((val) => val[0] <= 0))
+            throw new Error("Problema não tem solução ótima finita, problema original infactível");
+        const xB = problemaArtificial.vb.map((j) => x[j]).map((val) => [val]);
+        const { indiceQueSai, epsilon } = (0, simplex_1.determinarVariavelQueSai)(y, xB);
+        if (indiceQueSai === null) {
+            console.log("Não foi possível determinar a variável que sai da base.");
+            return "ilimitado";
         }
-    } while (artificiaisNaBase && it < maxIt);
-    console.log("Base inicial encontrada para Fase 2: " + problemaArtificial.vb);
-    removerVariaveisArtificiais(problemaArtificial);
-    problema.vb = problemaArtificial.vb;
-    problema.vnb = problemaArtificial.vnb;
-    return (0, fase2_1.default)(problema);
+        console.log(`Variável que sai da base: X${problemaArtificial.vb[indiceQueSai]}, razão mínima ε = ${epsilon}`);
+        (0, simplex_1.atualizarBase)(problemaArtificial, indiceQueSai, indiceQueEntra);
+        it++;
+    } while (it < maxIt);
+    throw new Error("Iteração máxima excedida na fase 1");
 }

@@ -15,7 +15,6 @@ function prepareInput() {
 function parseObjective(input) {
     const objectiveInput = input.shift();
     const objectiveMatch = objectiveInput.match(objectiveRegex);
-    console.log(objectiveMatch);
     const isMax = objectiveMatch[1].toLowerCase() === "max";
     const remainingObjective = objectiveInput.slice(objectiveMatch[0].length);
     const objectiveTerms = [...remainingObjective.matchAll(termsRegex)].map((match) => Object({
@@ -79,7 +78,6 @@ function handleOperators(A, c, ops) {
         }
     });
 }
-;
 function lerProblema() {
     try {
         const input = prepareInput();
@@ -87,7 +85,14 @@ function lerProblema() {
         const { A, b, ops } = parseConstraints(input, nVars);
         handleOperators(A, c, ops);
         return {
-            isMax, A, b, c, n: c.length, ops, vb: [], vnb: []
+            isMax,
+            A,
+            b,
+            c,
+            n: c.length,
+            ops,
+            vb: [],
+            vnb: [],
         };
     }
     catch (error) {
